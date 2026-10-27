@@ -1,33 +1,58 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser } from "../services/authService";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+
+import { loginUser, saveCurrentSession } from "../services/authService";
 
 const Login = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log("Loginform submitted");
-
-    setError("");
     setLoading(true);
 
     try {
+      // Authenticate the new user first.
       const response = await loginUser({ email, password });
 
+      const role = response.user.role?.toLowerCase();
+
+      let destination: string;
+
+      if (role === "customer") {
+        destination = "/customer";
+      } else if (role === "provider") {
+        destination = "/provider";
+      } else {
+        toast.error(
+          "Your account role is not recognized. Please contact support.",
+        );
+        return;
+      }
+
+      // Save the currently active account before replacing it.
+      saveCurrentSession();
+
+      // Activate the newly authenticated account.
       localStorage.setItem("token", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));
 
-      navigate("/");
+      // Clear cached data from the previously active account.
+      queryClient.clear();
+
+      toast.success("Login successful! Welcome back.");
+      navigate(destination, { replace: true });
     } catch (err) {
-      setError("Login failed. Please check your email and password.");
+      console.error("Login error:", err);
+      toast.error("Login failed. Please check your email and password.");
     } finally {
       setLoading(false);
     }
@@ -38,9 +63,11 @@ const Login = () => {
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-lg sm:p-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-indigo-600">Fixora</h1>
+
           <h2 className="mt-4 text-2xl font-bold text-slate-900">
             Welcome back
           </h2>
+
           <p className="mt-2 text-sm text-slate-500">
             Log in to continue to your account.
           </p>
@@ -54,6 +81,7 @@ const Login = () => {
             >
               Email address
             </label>
+
             <input
               id="email"
               type="email"
@@ -88,7 +116,7 @@ const Login = () => {
 
               <button
                 type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
+                onClick={() => setShowPassword((previous) => !previous)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
                 aria-pressed={showPassword}
                 className="absolute inset-y-0 right-0 flex items-center justify-center px-4 text-slate-500 transition hover:text-indigo-600 focus:outline-none focus:text-indigo-600"
@@ -108,7 +136,7 @@ const Login = () => {
                   >
                     <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
                     <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c5 0 9 7 9 7a13.16 13.16 0 0 1-2.16 2.77" />
-                    <path d="M6.61 6.61C3.69 8.58 2 12 2 12s4 7 10 7a9.77 9.77 0 0 0 4.39-1.03" />
+                    <path d="M6.61 6.61C3.69 8.58 2 12 2 12s3.64 7 10 7a9.77 9.77 0 0 0 4.39-1.03" />
                     <path d="m2 2 20 20" />
                   </svg>
                 ) : (
@@ -131,15 +159,6 @@ const Login = () => {
               </button>
             </div>
           </div>
-
-          {error && (
-            <p
-              role="alert"
-              className="rounded-lg bg-red-50 p-3 text-sm text-red-700"
-            >
-              {error}
-            </p>
-          )}
 
           <button
             type="submit"

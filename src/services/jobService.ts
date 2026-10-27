@@ -26,16 +26,36 @@ interface CreateJobResponse {
   data: Job;
 }
 
-// Get available jobs
-export const getAvailableJobs = async (): Promise<JobsResponse> => {
-  const response = await api.get<JobsResponse>("/jobs/available-jobs");
+// Get the first page of available jobs
+export const getAvailableJobs = async (
+  page = 1,
+  limit = 8,
+): Promise<JobsResponse> => {
+  const response = await api.get<JobsResponse>("/jobs/available-jobs", {
+    params: { page, limit },
+  });
+
   return response.data;
 };
 
-// Get a single job
-export const getJobById = async (
-  id: string,
-): Promise<SingleJobResponse> => {
+// Get available jobs by category
+export const getJobByCategory = async (
+  category: string,
+  page = 1,
+  limit = 5,
+): Promise<JobsResponse> => {
+  const response = await api.get<JobsResponse>(
+    `/jobs/category/${encodeURIComponent(category)}`,
+    {
+      params: { page, limit },
+    },
+  );
+
+  return response.data;
+};
+
+// Get a single job by ID
+export const getJobById = async (id: string): Promise<SingleJobResponse> => {
   const response = await api.get<SingleJobResponse>(
     `/jobs/available-jobs/${id}/`,
   );
@@ -49,8 +69,25 @@ export const getCustomerJobs = async (): Promise<JobsResponse> => {
   return response.data;
 };
 
-// Create a job
+// Get jobs posted by the logged-in provider
+export const getProviderJobs = async (): Promise<JobsResponse> => {
+  const response = await api.get<JobsResponse>("/jobs/provider-jobs/");
+  return response.data;
+};
 
+// Get a page of available jobs
+export const getAvailableJobsPage = async (
+  page = 1,
+  limit = 8,
+): Promise<JobsResponse> => {
+  const response = await api.get<JobsResponse>("/jobs/available-jobs", {
+    params: { page, limit },
+  });
+
+  return response.data;
+};
+
+// Create a job
 export const createJob = async (
   jobData: CreateJobInput,
 ): Promise<CreateJobResponse> => {
@@ -58,42 +95,56 @@ export const createJob = async (
   return response.data;
 };
 
-// Accept a job
+// Provider: accept a job
 export const acceptJob = async (jobId: string): Promise<JobActionResponse> => {
-  const response = await api.patch<JobActionResponse>(`/jobs/${jobId}/accept/`);
+  const response = await api.patch<JobActionResponse>(
+    `/jobs/${jobId}/provider-status/`,
+    { status: "accepted" },
+  );
+
   return response.data;
 };
 
-// Start a job
+// Provider: start a job
 export const startJob = async (jobId: string): Promise<JobActionResponse> => {
   const response = await api.patch<JobActionResponse>(
-    `/jobs/${jobId}/in-progress/`,
+    `/jobs/${jobId}/provider-status/`,
+    { status: "in_progress" },
   );
+
   return response.data;
 };
 
-// Submit a job for customer review
+// Provider: submit a job for customer review
 export const submitJobForReview = async (
   jobId: string,
 ): Promise<JobActionResponse> => {
   const response = await api.patch<JobActionResponse>(
-    `/jobs/${jobId}/update-to-review/`,
+    `/jobs/${jobId}/provider-status/`,
+    { status: "awaiting_review" },
   );
+
   return response.data;
 };
 
-// Complete a job
+// Customer: complete a job
 export const completeJob = async (
   jobId: string,
 ): Promise<JobActionResponse> => {
   const response = await api.patch<JobActionResponse>(
-    `/jobs/${jobId}/completed/`,
+    `/jobs/${jobId}/customer-status/`,
+    { status: "completed" },
   );
+
   return response.data;
 };
 
-// Cancel a job
+// Customer: cancel a job
 export const cancelJob = async (jobId: string): Promise<JobActionResponse> => {
-  const response = await api.patch<JobActionResponse>(`/jobs/${jobId}/cancel/`);
+  const response = await api.patch<JobActionResponse>(
+    `/jobs/${jobId}/customer-status/`,
+    { status: "cancelled" },
+  );
+
   return response.data;
 };
