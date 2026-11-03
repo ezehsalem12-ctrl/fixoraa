@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Search, RotateCcw, X } from "lucide-react";
 
 import { getAvailableJobs, getJobByCategory } from "../services/jobService";
-import type { JobCategory } from "../types/job";
+import type { Job, JobCategory } from "../types/job";
 import JobCard from "./JobCard";
 
 const categories: { label: string; value: JobCategory }[] = [
@@ -29,7 +29,7 @@ const AvailableJobs = () => {
 
   const { data, isPending, isError, error } = useQuery({
     queryKey: ["available-jobs"],
-    queryFn: getAvailableJobs,
+    queryFn: () => getAvailableJobs(),
     enabled: activeCategory === "",
   });
 
@@ -44,12 +44,14 @@ const AvailableJobs = () => {
     enabled: activeCategory !== "",
   });
 
-  const jobs = activeCategory ? (categoryData?.jobs ?? []) : (data?.jobs ?? []);
+  const jobs: Job[] = activeCategory
+    ? (categoryData?.jobs ?? [])
+    : (data?.jobs ?? []);
 
   const filteredJobs = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
 
-    return jobs.filter((job) => {
+    return jobs.filter((job: Job) => {
       const matchesSearch =
         !search ||
         [job.service, job.category, job.description, job.location].some(
@@ -194,7 +196,7 @@ const AvailableJobs = () => {
             )}
 
             {searchTerm.trim() && (
-              <span className="max-w-full break-words rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
+              <span className="max-w-full wrap-break-word rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
                 Search: {searchTerm.trim()}
               </span>
             )}
@@ -229,7 +231,7 @@ const AvailableJobs = () => {
               Unable to load available jobs
             </p>
 
-            <p className="mt-2 break-words text-sm text-red-700">
+            <p className="mt-2 wrap-break-word text-sm text-red-700">
               {currentError instanceof Error
                 ? currentError.message
                 : "Something went wrong. Please try again later."}
@@ -252,7 +254,7 @@ const AvailableJobs = () => {
                   : "No jobs available just yet"}
             </h3>
 
-            <p className="mx-auto mt-2 max-w-md break-words leading-7 text-slate-600">
+            <p className="mx-auto mt-2 max-w-md wrap-break-word leading-7 text-slate-600">
               {searchTerm.trim()
                 ? "Try another keyword or clear your search to see more jobs."
                 : activeCategory
@@ -287,7 +289,7 @@ const AvailableJobs = () => {
             </div>
 
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredJobs.slice(0, 8).map((job) => (
+              {filteredJobs.slice(0, 8).map((job: Job) => (
                 <JobCard key={job._id} job={job} />
               ))}
             </div>
