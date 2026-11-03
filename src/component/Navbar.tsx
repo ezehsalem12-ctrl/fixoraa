@@ -145,10 +145,16 @@ const Navbar = () => {
         <Link
           to="/"
           onClick={(event) => handleNavClick(event, "/", "route")}
-          className="shrink-0 text-xl font-bold tracking-tight text-indigo-600 sm:text-2xl"
+          className="flex shrink-0 items-center gap-2 text-xl font-bold tracking-tight text-indigo-600 sm:text-2xl"
           aria-label="Fixora home"
         >
-          Fixora<span className="text-slate-900">.</span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-lg font-extrabold text-white sm:h-9 sm:w-9">
+            F
+          </span>
+
+          <span>
+            Fixora<span className="text-slate-900">.</span>
+          </span>
         </Link>
 
         {/* Desktop navigation */}
@@ -272,9 +278,16 @@ const Navbar = () => {
           <Link
             to="/"
             onClick={(event) => handleNavClick(event, "/", "route")}
-            className="text-xl font-bold tracking-tight text-indigo-600"
+            className="flex shrink-0 items-center gap-2 text-xl font-bold tracking-tight text-indigo-600 sm:text-2xl"
+            aria-label="Fixora home"
           >
-            Fixora<span className="text-slate-900">.</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-lg font-extrabold text-white sm:h-9 sm:w-9">
+              F
+            </span>
+
+            <span>
+              Fixora<span className="text-slate-900">.</span>
+            </span>
           </Link>
 
           <button

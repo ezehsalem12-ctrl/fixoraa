@@ -4,21 +4,17 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 
 import Navbar from "../component/Navbar";
-import Footer from "../component/Footer";
 import JobCard from "../component/JobCard";
 import { getAvailableJobsPage } from "../services/jobService";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 30;
 
 const JobsPage = () => {
   const [page, setPage] = useState(1);
 
   const { data, isPending, isError, error } = useQuery({
     queryKey: ["available-jobs", "all-page", page],
-    queryFn: async () => {
-      const response = await getAvailableJobsPage(page, PAGE_SIZE);
-      return response;
-    },
+    queryFn: () => getAvailableJobsPage(page, PAGE_SIZE),
   });
 
   const jobs = data?.jobs ?? [];
@@ -30,7 +26,7 @@ const JobsPage = () => {
       <Navbar />
 
       <main className="min-h-screen bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-[1600px]">
           <Link
             to="/"
             className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-indigo-600"
@@ -55,11 +51,11 @@ const JobsPage = () => {
           </div>
 
           {isPending && (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Array.from({ length: 8 }, (_, index) => (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+              {Array.from({ length: PAGE_SIZE }, (_, index) => (
                 <div
                   key={index}
-                  className="animate-pulse rounded-2xl border border-slate-200 bg-white p-6"
+                  className="animate-pulse rounded-2xl border border-slate-200 bg-white p-5"
                 >
                   <div className="mb-5 h-5 w-2/3 rounded bg-slate-200" />
                   <div className="mb-3 h-4 rounded bg-slate-100" />
@@ -113,7 +109,7 @@ const JobsPage = () => {
                 jobs
               </p>
 
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
                 {jobs.map((job) => (
                   <JobCard key={job._id} job={job} />
                 ))}
@@ -153,8 +149,6 @@ const JobsPage = () => {
           )}
         </div>
       </main>
-
-      <Footer />
     </>
   );
 };
