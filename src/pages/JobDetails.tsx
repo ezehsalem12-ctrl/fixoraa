@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,9 +13,11 @@ import {
 } from "lucide-react";
 
 import { acceptJob, getJobById } from "../services/jobService";
+import { getMe } from "../services/authService";
 
 const JobDetails = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
@@ -101,7 +103,7 @@ const JobDetails = () => {
         <div className="grid min-w-0 grid-cols-1 items-start gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_340px]">
           {/* Main job details */}
           <article className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:rounded-3xl">
-            <header className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-indigo-800 px-5 py-7 text-white sm:px-8 sm:py-9 lg:px-9 lg:py-10">
+            <header className="relative overflow-hidden bg-linear-to-br from-slate-950 via-indigo-950 to-indigo-800 px-5 py-7 text-white sm:px-8 sm:py-9 lg:px-9 lg:py-10">
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute -right-12 -top-14 h-40 w-40 rounded-full bg-white/5 sm:h-52 sm:w-52"
@@ -117,12 +119,12 @@ const JobDetails = () => {
                 </p>
 
                 <div className="mb-4 flex flex-wrap items-center gap-2">
-                  <span className="max-w-full break-words rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold capitalize text-indigo-100">
+                  <span className="max-w-full wrap-break-word rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold capitalize text-indigo-100">
                     {job.category || "General service"}
                   </span>
 
                   <span
-                    className={`max-w-full break-words rounded-full px-3 py-1.5 text-xs font-bold capitalize ring-1 ring-inset ${
+                    className={`max-w-full wrap-break-word rounded-full px-3 py-1.5 text-xs font-bold capitalize ring-1 ring-inset ${
                       statusStyles[job.status] ??
                       "bg-slate-100 text-slate-600 ring-slate-200"
                     }`}
@@ -131,13 +133,13 @@ const JobDetails = () => {
                   </span>
                 </div>
 
-                <h1 className="break-words text-2xl font-extrabold capitalize leading-tight tracking-tight sm:text-3xl lg:text-4xl">
+                <h1 className="wrap-break-word text-2xl font-extrabold capitalize leading-tight tracking-tight sm:text-3xl lg:text-4xl">
                   {job.service || "Service request"}
                 </h1>
 
                 <div className="mt-5 flex min-w-0 items-start gap-2 text-sm leading-6 text-indigo-100">
                   <MapPin size={18} className="mt-1 shrink-0" />
-                  <span className="min-w-0 break-words">
+                  <span className="min-w-0 wrap-break-word">
                     {job.location || "Location not provided"}
                   </span>
                 </div>
@@ -150,7 +152,7 @@ const JobDetails = () => {
                   About this job
                 </h2>
 
-                <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-slate-600 sm:text-base">
+                <p className="mt-3 whitespace-pre-wrap wrap-break-word text-sm leading-7 text-slate-600 sm:text-base">
                   {job.description || "No description provided."}
                 </p>
               </section>
@@ -172,7 +174,7 @@ const JobDetails = () => {
                       Location
                     </p>
 
-                    <p className="mt-2 break-words text-sm font-semibold leading-6 text-slate-900">
+                    <p className="mt-2 wrap-break-word text-sm font-semibold leading-6 text-slate-900">
                       {job.location || "Location not provided"}
                     </p>
                   </div>
@@ -186,7 +188,7 @@ const JobDetails = () => {
                       Service category
                     </p>
 
-                    <p className="mt-2 break-words text-sm font-semibold capitalize leading-6 text-slate-900">
+                    <p className="mt-2 wrap-break-word text-sm font-semibold capitalize leading-6 text-slate-900">
                       {job.category || "General service"}
                     </p>
                   </div>
@@ -222,7 +224,7 @@ const JobDetails = () => {
                   Customer's budget
                 </div>
 
-                <p className="mt-3 break-words text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+                <p className="mt-3 wrap-break-word text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
                   ₦{Number(job.price).toLocaleString("en-NG")}
                 </p>
 
@@ -253,7 +255,23 @@ const JobDetails = () => {
                 {isAvailable ? (
                   <button
                     type="button"
-                    onClick={() => acceptMutation.mutate()}
+                    onClick={async () => {
+                      const token = localStorage.getItem("token");
+
+                      if (!token) {
+                        navigate("/register");
+                        return;
+                      }
+
+                      try {
+                        await getMe();
+                        acceptMutation.mutate();
+                      } catch {
+                        localStorage.removeItem("token");
+                        localStorage.removeItem("user");
+                        navigate("/register");
+                      }
+                    }}
                     disabled={acceptMutation.isPending}
                     className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                   >
